@@ -10,8 +10,7 @@ Observability:
   BetterDB (localhost:3001) directly Valkey se connect karke
   saara data pull karta hai — app mein koi Prometheus code nahi chahiye.
 """
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import time
 import logging

@@ -27,7 +27,7 @@ services:
       DB_HOST: valkey
       DB_PORT: 6379
       DB_TYPE: valkey
-      STORAGE_TYPE: sqlite
+      STORAGE_TYPE: memory
       BETTERDB_LICENSE_KEY: ""
     depends_on:
       valkey:

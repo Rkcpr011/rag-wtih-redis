@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # App code copy karo
 COPY semantic_cache.py .
 COPY rag.py .
+COPY ingest.py .
 COPY app.py .
 
 # Port expose karo
