@@ -70,7 +70,7 @@ SIMILARITY_THRESHOLD = float(os.getenv("CACHE_THRESHOLD", "0.90"))
 _embedder: Optional[SentenceTransformer] = None
 _cache: Optional[SemanticCache] = None
 _chroma_collection = None
-_openai_client: Optional[OpenAI] = None
+_openai_client: Optional[AzureOpenAI] = None
 
 
 def get_embedder() -> SentenceTransformer:

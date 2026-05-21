@@ -15,7 +15,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import time
 import logging
-
+from ingest import ingest_pdf
 from rag import ask
 from semantic_cache import SemanticCache
 import os
@@ -72,6 +72,26 @@ def health():
         "valkey": valkey_ok
     }
 
+
+@app.post("/ingest")
+async def ingest(file: UploadFile = File(...)):
+    """
+    PDF upload karo → text extract → chunk → embed → ChromaDB mein store.
+ 
+    Usage:
+        curl -X POST http://localhost:8000/ingest \
+             -F "file=@your_document.pdf"
+    """
+    if not file.filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Sirf PDF files accepted hain")
+ 
+    pdf_bytes = await file.read()
+    if not pdf_bytes:
+        raise HTTPException(status_code=400, detail="Empty file")
+ 
+    result = ingest_pdf(pdf_bytes, file.filename)
+    return result
+ 
 
 @app.post("/ask", response_model=QueryResponse)
 def query_rag(req: QueryRequest):
