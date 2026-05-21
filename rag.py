@@ -44,7 +44,7 @@ from typing import Optional
 from sentence_transformers import SentenceTransformer
 # from openai import OpenAI
 # Ye daalo
-from openai import AzureOpenAI
+from openai import OpenAI
 import chromadb
 
 from semantic_cache import SemanticCache
@@ -58,19 +58,21 @@ logger = logging.getLogger(__name__)
 # ── Config ────────────────────────────────────────────────────────────────────
 
 VALKEY_URL       = os.getenv("VALKEY_URL", "redis://localhost:6379")
-OPENAI_API_KEY   = os.getenv("OPENAI_API_KEY", "")
+
 CHROMA_PATH      = os.getenv("CHROMA_PATH", "./chroma_db")
 COLLECTION_NAME  = os.getenv("COLLECTION_NAME", "rag_docs")
 EMBED_MODEL      = "all-MiniLM-L6-v2"   # fast, 384-dim, free local model
 SIMILARITY_THRESHOLD = float(os.getenv("CACHE_THRESHOLD", "0.90"))
 
-
+endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+api_key = os.getenv("AZURE_OPENAI_API_KEY")
 # ── Globals (lazy init) ───────────────────────────────────────────────────────
 
 _embedder: Optional[SentenceTransformer] = None
 _cache: Optional[SemanticCache] = None
 _chroma_collection = None
-_openai_client: Optional[AzureOpenAI] = None
+_openai_client: Optional[OpenAI] = None
 
 
 def get_embedder() -> SentenceTransformer:
@@ -94,26 +96,17 @@ def get_cache() -> SemanticCache:
 
 def get_chroma():
     global _chroma_collection
-    if _chroma_collection is None:
+    if _chroma_collection is None: 
         client = chromadb.PersistentClient(path=CHROMA_PATH)
         _chroma_collection = client.get_or_create_collection(COLLECTION_NAME)
     return _chroma_collection
 
 
-# def get_openai() -> OpenAI:
-#     global _openai_client
-#     if _openai_client is None:
-#         _openai_client = OpenAI(api_key=OPENAI_API_KEY)
-#     return _openai_client
-# get_openai() function replace karo
-def get_openai() -> AzureOpenAI:
+
+def get_openai() -> OpenAI:
     global _openai_client
     if _openai_client is None:
-        _openai_client = AzureOpenAI(
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01"),
-        )
+        _openai_client =OpenAI(base_url=endpoint,api_key=api_key)
     return _openai_client
 
 
