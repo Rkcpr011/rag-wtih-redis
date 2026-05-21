@@ -24,7 +24,7 @@ Flow:
                               [Build Prompt]
                                      │
                                      ▼
-                              [LLM Call]  ← OpenAI / local Ollama
+                              [LLM Call]  ← AzureOpenAI / local Ollama
                                      │
                                      ▼
                               [SemanticCache.store()]  ← Valkey mein save
@@ -42,7 +42,9 @@ import logging
 from typing import Optional
 
 from sentence_transformers import SentenceTransformer
-from openai import OpenAI
+# from openai import OpenAI
+# Ye daalo
+from openai import AzureOpenAI
 import chromadb
 
 from semantic_cache import SemanticCache
@@ -98,10 +100,20 @@ def get_chroma():
     return _chroma_collection
 
 
-def get_openai() -> OpenAI:
+# def get_openai() -> OpenAI:
+#     global _openai_client
+#     if _openai_client is None:
+#         _openai_client = OpenAI(api_key=OPENAI_API_KEY)
+#     return _openai_client
+# get_openai() function replace karo
+def get_openai() -> AzureOpenAI:
     global _openai_client
     if _openai_client is None:
-        _openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        _openai_client = AzureOpenAI(
+            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01"),
+        )
     return _openai_client
 
 
@@ -134,13 +146,9 @@ def call_llm(query: str, context: str) -> str:
         "Answer the user's question ONLY using the provided context. "
         "If the context doesn't contain the answer, say so honestly."
     )
-    user_message = f"""Context:
-{context}
-
-Question: {query}"""
-
+    user_message = f"""Context: {context} Question: {query}"""
     response = get_openai().chat.completions.create(
-        model="gpt-4o-mini",
+         model=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4o-mini"),
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_message},

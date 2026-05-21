@@ -41,7 +41,12 @@ services:
       - "8000:8000"
     environment:
       VALKEY_URL: redis://valkey:6379  # container name, localhost nahi
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Ye daalo
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION}
+      # OPENAI_API_KEY: ${OPENAI_API_KEY}
       CHROMA_PATH: /app/chroma_db
       COLLECTION_NAME: rag_docs
       CACHE_THRESHOLD: "0.90"

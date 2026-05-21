@@ -1,13 +1,11 @@
 """
 app.py  ─  FastAPI RAG Server with Valkey Cache + BetterDB Observability
 ─────────────────────────────────────────────────────────────────────────
-
 Endpoints:
   POST /ask            ← RAG query karo
   GET  /cache/stats    ← Valkey cache stats
   DELETE /cache/clear  ← Cache flush (testing ke liye)
   GET  /health         ← Health check (Docker healthcheck bhi yahi use karta hai)
-
 Observability:
   BetterDB (localhost:3001) directly Valkey se connect karke
   saara data pull karta hai — app mein koi Prometheus code nahi chahiye.
@@ -22,12 +20,15 @@ from rag import ask
 from semantic_cache import SemanticCache
 import os
 
+#___   Loggings________________________________________
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 )
 logger = logging.getLogger(__name__)
 
+# fastapi app create karo
 app = FastAPI(
     title="RAG API with Valkey Cache",
     description="Production-grade RAG with semantic caching — BetterDB se monitor karo",
