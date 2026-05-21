@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+
+  # ── Valkey ────────────────────────────────────────────────────────────────
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: valkey
+    ports:
+      - "6379:6379"
+    command: valkey-server --save 60 1 --loglevel warning
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── BetterDB (Valkey-native observability) ────────────────────────────────
+  betterdb:
+    image: betterdb/monitor
+    container_name: betterdb
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: valkey
+      DB_PORT: 6379
+      DB_TYPE: valkey
+      STORAGE_TYPE: sqlite
+      BETTERDB_LICENSE_KEY: ""
+    depends_on:
+      valkey:
+        condition: service_healthy
+
+  # ── RAG App (tera Python app) ─────────────────────────────────────────────
+  rag-app:
+    build: .                          # current folder ka Dockerfile use karega
+    container_name: rag_app
+    ports:
+      - "8000:8000"
+    environment:
+      VALKEY_URL: redis://valkey:6379  # container name, localhost nahi
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CHROMA_PATH: /app/chroma_db
+      COLLECTION_NAME: rag_docs
+      CACHE_THRESHOLD: "0.90"
+    volumes:
+      - chroma_data:/app/chroma_db    # ChromaDB data persist karne ke liye
+    depends_on:
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  valkey_data:
+  chroma_data:
